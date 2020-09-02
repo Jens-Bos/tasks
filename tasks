@@ -7,7 +7,7 @@ from os.path import expanduser, exists
 def main():
     tasks = load_tasks()
     parser = argparse.ArgumentParser(
-        description="hallo world"
+        description="simple to do list"
     )
 
     command_parser = parser.add_subparsers(
