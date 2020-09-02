@@ -1,0 +1,97 @@
+#! /usr/bin/python3
+
+import argparse
+from os.path import expanduser, exists
+
+
+def main():
+    tasks = load_tasks()
+    parser = argparse.ArgumentParser(
+        description="hallo world"
+    )
+
+    command_parser = parser.add_subparsers(
+        title="Commands",
+        description="supported commands"
+    )
+
+    parser_list = command_parser.add_parser(
+        "list",
+        help="shows all list items",
+    )
+    parser_list.set_defaults(func=list_tasks)
+
+    parser_add = command_parser.add_parser(
+        "add",
+        help="adds item to list",
+    )
+    parser_add.add_argument(
+        "text",
+        help="add an item",
+        nargs="*"
+    )
+    parser_add.set_defaults(func=add_task)
+
+    parser_finish = command_parser.add_parser(
+        "finish",
+        help="removes item from list",
+    )
+    parser_finish.add_argument(
+        "id",
+        type=int,
+        choices=range(1, len(tasks) + 1),
+        help="remove an item",
+        nargs="*"
+    )
+    parser_finish.set_defaults(func=finish_task)
+
+    # Parse args and send parsed data to corresponding function
+    args = parser.parse_args()
+    try:
+        args.func(args, tasks)
+    except AttributeError:
+        parser.print_help()
+
+
+def save_tasks(tasks):
+    _path = expanduser("~/tasks.txt")
+    with open(_path, "w") as f:
+        f.writelines(tasks)
+
+
+def load_tasks():
+    _path = expanduser("~/tasks.txt")
+    if not exists(_path):
+        print("Missing database. Create ~/tasks.txt?")
+        answer = input("[Y/n] ")
+        if answer not in ["", "y", "Y"]:
+            exit()
+        with open(_path, "w") as f:
+            pass
+    with open(_path, "r") as f:
+        tasks = f.readlines()
+    return tasks
+
+
+def add_task(args, tasks):
+    task = " ".join(args.text)
+    tasks.append(task + "\n")
+    save_tasks(tasks)
+
+
+def finish_task(args, tasks):
+    sorted_args = args.id
+    sorted_args.sort(reverse=True)
+    for arg in sorted_args:
+        tasks.pop(arg - 1)
+    save_tasks(tasks)
+
+
+def list_tasks(args, tasks):
+    for number, task in enumerate(tasks):
+        task = task.rstrip("\n")
+        print(number + 1, task)
+
+
+if __name__ == "__main__":
+    main()
